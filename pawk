@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# "pawk" is an awk-like tool that uses a Python syntax.
+# In other words, you can use it to execute a Python one-liner
+# on every line of an input file (or stdin).
+#
+# For more help:
+# pawk --help
+
+
+# annoyingly, readlink prints nothing when given a file name instead of a
+# symbolic link. So we have to first check if it's a symlink.
+if [ -L "$0" ]; then
+  mypath="$(dirname $(readlink "$0"))"
+else
+  mypath="$(dirname "$0")"
+fi  	
+TMP_FILE="$(mktemp -u -q /tmp/pawk-XXXXXX).py"
+if [ $? -ne 0 ]; then
+    echo "$0: Can't create temp file, bye.."
+    exit 1
+fi
+# Set trap to clean up file
+trap 'rm -f -- "$TMP_FILE"' EXIT
+
+# the dance of copies is so that we can run two pawks at the same time
+# (so they must have different file names),
+# but also if they fail I want the generated Python to be available
+# (but only one of them, I don't want them to accumulate).
+source ${mypath:-.}/venv/bin/activate
+python3 "${mypath:-.}/pawk1.py" "$@" > "${TMP_FILE}" \
+  && cp -f "${TMP_FILE}" /tmp/pawk-errored.py \
+  && python3 "${TMP_FILE}" && rm -f /tmp/pawk-errored.py
+deactivate
+

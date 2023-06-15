@@ -55,6 +55,11 @@ else:
 pawk 'if not d: old_line=line;d=1' 'else: print(f"{old_line[:40]:<40}{line[:40]}");d=0 ' --last 'if d: print(old_line)'
 ```
 
+```
+# Show the columns in a Parquet file
+pawk --file delta_byte_array.parquet --last 'print(header)'
+```
+
 ## Installation
 
 Make the venv and pip install the requirements like this:

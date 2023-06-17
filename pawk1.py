@@ -13,11 +13,11 @@ Options:
 --dry-run      : print the generated Python program and exit without
                  running it. Also answers to --dryrun and --dry_run.
 --begin <code> : run this code before opening the input file.
-                 also answers to --first or --start.
+                 also answers to --first, --start, or --before.
 --each <code>  : run this code on each line (the "--each" is optional)
                  multi-line code is OK.
 --end <code>   : run this code after closing the input file.
-                 also answers to --last or --finish.
+                 also answers to --last, --finish, or --after.
 --file <fname> : read from fname instead of stdin.
                  File names ending in ".csv" will trigger CSV parsing,
                  similarly for ".tsv" and ".parquet".
@@ -74,13 +74,16 @@ def main():
             command += sys.argv[i+1]
             skip = True
         if arg.lower()=='--print':
-            command = f'print({sys.argv[i+1]})'
+            if command: command += '\n'
+            command += f'print({sys.argv[i+1]})'
             skip = True
-        if arg.lower() in ['--start', '--begin', '--first']:
-            start_command = sys.argv[i+1]
+        if arg.lower() in ['--start', '--begin', '--first', '--before']:
+            if start_command: start_command += '\n'
+            start_command += sys.argv[i+1]
             skip = True
-        if arg.lower() in ['--finish', '--end', '--last']:
-            end_command = sys.argv[i+1]
+        if arg.lower() in ['--finish', '--end', '--last', '--after']:
+            if end_command: end_command += '\n'
+            end_command += sys.argv[i+1]
             skip = True
         if arg.lower()=='--field' or arg=='-F':
             separator = sys.argv[i+1]

@@ -114,6 +114,7 @@ def main():
     if filename.lower().endswith('.csv'): mode='csv'
     if filename.lower().endswith('.tsv'): mode='tsv'
     if filename.lower().endswith('.parquet'): mode='parquet'
+    if filename.lower().endswith('.json'): mode='json'
     if mode=='csv':
         if filename:
             file=f'open("{filename}", "r", newline="")'
@@ -127,9 +128,14 @@ def main():
         open_file=f'table=pq.read_table("{filename}")\nfor _foo in [1]:'
         fileoverride='file=range(len(table.columns[0]))'
         fileoverride+='; header=[table.field(c).name for c in range(len(table.columns))]'
+    elif mode=='json':
+        fileoverride='''file=json.load(file);
+if isinstance(file, dict):
+    file=[file]'''
     else:
         fileoverride=''
         mode='text'
+    _fileoverride=textwrap.indent(fileoverride,'  ')
     program = f'''
 import csv, datetime, json, re, sys
 import collections
@@ -142,7 +148,7 @@ word={{}}
 mode='{mode}'
 {start_command}
 {open_file}
-  {fileoverride}
+{_fileoverride}
   for line in file:
     NR += 1 # for awk compatibility. 
     if mode=='text':
@@ -154,6 +160,9 @@ mode='{mode}'
         words=[str(col[line]) for col in table.columns]
         word=dict(zip(header,words))
         line=','.join(words)
+    elif mode=='json':
+        words=list(line.keys())
+        word=line
     else:
         words = line
         line = ','.join(words)

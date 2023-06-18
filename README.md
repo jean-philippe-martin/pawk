@@ -66,18 +66,29 @@ pawk 'if not d: old_line=line;d=1' 'else: print(f"{old_line[:40]:<40}{line[:40]}
 
 ```
 # Show the columns in a Parquet file
-pawk --file delta_byte_array.parquet --last 'print(header)'
+pawk --file tests/data/delta_byte_array.parquet --last 'print(header)'
 ```
 
 ```
 # Look for a regular expression
-pawk --file numbers.csv 'if re.match(r"o.*", words[1]): print(line)'
+pawk --file tests/data/numbers.csv 'if re.match(r"o.*", words[1]): print(line)'
 ```
 
 ```
 # count distinct words
 pawk --file README.md --begin 'd=defaultdict(str)' 'for w in words: d[w]=1' \
      --end 'print(f"distinct words: {len(d.keys())}")'
+```
+
+```
+# Read a specific key in a JSON file
+pawk --file tests/data/onejson.json --print 'word["two"]'
+```
+
+```
+# Process an array of JSON objects
+pawk --file tests/data/jsonarray.json --each 'a += word["age"]' \
+     --end 'print(f"sum of ages: {a}")'
 ```
 
 ## Installation

@@ -2,24 +2,33 @@
 
 ## About
 
-The venerable tool Awk shows it's very useful to easily write one-liners
-to process input files, one line at a time. The only downside for me is
-that I don't use it enough to remember the Awk language from one time
-to the next.
+The venerable tool Awk has showed us how useful it is to be able
+to write quick one-liners to process files one line at a time.
+
+Awk's only downside for me is that I don't use it enough to
+remember the Awk language from one time to the next.
 
 Wouldn't it be nice to have an Awk-inspired tool, but where the language
-is Python? This is what "pawk" is about.
+is Python? Where it knows how to read `csv` and `parquet` files?
+Where it has a few synonyms for the command-line flags so that what we type
+is more likely to work on the first try? This is what "pawk" is about.
 
 ## Overview
 
-At its heart, the tool will read a file and run the Python you provided on
-every line. You can also specify code to run before or after the loop.
+At its heart the tool will read a file, split each line into words,
+and give that to Python code you provide.
+
+You can also specify code to run before or after the loop.
 Since your code is put directly into the program, you can use `continue` or
 `break` to go to the next line or stop processing.
 
 The program will also parse `csv`, `tsv` or `parquet` files if given as input
 so you don't have to worry about things like commas in quoted strings in your
-csv.
+csv. It will import `datetime`, `defaultdict`, `re`, and `json` for you so
+you don't have to.
+
+To save you from having to initialize them, variables `a` to `z` are already
+set to `0` on start for you. You can override this of course.
 
 There are a few more niceties, use `pawk --help` to see a list. 
 
@@ -32,7 +41,7 @@ echo $PATH | pawk -F: 'print("\n".join(words))'
 
 ```
 # count lines
-cat README.md | pawk --start 'c=0' --each 'c+=1' --end 'print(f"line count: {c}")'
+cat README.md | pawk --begin 'c=0' --each 'c+=1' --end 'print(f"line count: {c}")'
 ```
 
 ```
@@ -60,9 +69,20 @@ pawk 'if not d: old_line=line;d=1' 'else: print(f"{old_line[:40]:<40}{line[:40]}
 pawk --file delta_byte_array.parquet --last 'print(header)'
 ```
 
+```
+# Look for a regular expression
+pawk --file numbers.csv 'if re.match(r"o.*", words[1]): print(line)'
+```
+
+```
+# count distinct words
+pawk --file README.md --begin 'd=defaultdict(str)' 'for w in words: d[w]=1' \
+     --end 'print(f"distinct words: {len(d.keys())}")'
+```
+
 ## Installation
 
-Make the venv and pip install the requirements like this:
+Make the venv and pip-install the requirements like this:
 
 ```
 $ python3 -m venv venv

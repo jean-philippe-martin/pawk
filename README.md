@@ -22,9 +22,9 @@ You can also specify code to run before or after the loop.
 Since your code is put directly into the program, you can use `continue` or
 `break` to go to the next line or stop processing.
 
-The program will also parse `csv`, `tsv` or `parquet` files if given as input
-so you don't have to worry about things like commas in quoted strings in your
-csv. It will import `datetime`, `defaultdict`, `re`, and `json` for you so
+The program will also parse `csv`, `tsv`, `json`, `toml` or `parquet` files if given
+as input so you don't have to worry about things like commas in quoted strings
+in your csv. It will import `datetime`, `defaultdict`, `re`, and `json` for you so
 you don't have to.
 
 To save you from having to initialize them, variables `a` to `z` are already

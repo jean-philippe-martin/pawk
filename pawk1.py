@@ -1,6 +1,13 @@
-import sys, textwrap
+"""
+Pawk: Awk-inspired, in Python.
 
-def help():
+This file takes your settings and outputs a Python program to run.
+Use the pawk shell script as the main entry point instad of this.
+"""
+import sys
+import textwrap
+
+def usage():
     print('''usage: pawk [options] [Python code] < input_file
 
 Will run the Python code for each line of the file.
@@ -67,7 +74,7 @@ def main():
             separator = arg[2]
             continue
         if arg.lower()=='--help':
-            help()
+            usage()
             return
         if arg.lower()=='--each':
             if command: command += '\n'
@@ -115,6 +122,7 @@ def main():
     if filename.lower().endswith('.tsv'): mode='tsv'
     if filename.lower().endswith('.parquet'): mode='parquet'
     if filename.lower().endswith('.json'): mode='json'
+    if filename.lower().endswith('.toml'): mode='toml'
     if mode=='csv':
         if filename:
             file=f'open("{filename}", "r", newline="")'
@@ -128,6 +136,9 @@ def main():
         open_file=f'table=pq.read_table("{filename}")\nfor _foo in [1]:'
         fileoverride='file=range(len(table.columns[0]))'
         fileoverride+='; header=[table.field(c).name for c in range(len(table.columns))]'
+    elif mode=='toml':
+        start_command = f'import toml\n{start_command}'
+        fileoverride = 'file = [toml.load(file)]'
     elif mode=='json':
         fileoverride='''file=json.load(file);
 if isinstance(file, dict):
@@ -160,7 +171,7 @@ mode='{mode}'
         words=[str(col[line]) for col in table.columns]
         word=dict(zip(header,words))
         line=','.join(words)
-    elif mode=='json':
+    elif mode=='json' or mode=='toml':
         words=list(line.keys())
         word=line
     else:

@@ -43,13 +43,18 @@ current line, and "words" is that line split using the given separator.
 Single-letter variables (a-z) are already initialized to 0 for you,
 as well as "total" and "count" (all set to 0).
 
-If the filename ends in '.csv', '.tsv' or '.parquet' then a corresponding
-reader is used, and "words" are the parsed line. Variable "line" is still 
-present but it's just ','.join(words) rather than the original line. In 
-that mode the passed separator is ignored.
+If the filename ends in '.csv', '.tsv' or '.parquet',
+then a corresponding reader is used, and "words" are the parsed line.
+Variable "line" is still  present but it's just ','.join(words) rather
+than the original line. In that mode the passed separator is ignored.
+If the file has a header then variable "header" holds them in a list
+and the "word" variable is set, it's a dictionary mapping from the column
+name to its value for the current line.
 
-In parquet mode in addition to "words", the "word" variable is set.
-It's a dictionary mapping from the column name to its value.
+If the filename ends in '.json' or '.toml' then again the corresponding
+reader is used, except that now each "line" is a dictionary (and "word"
+is an alias for it). The JSON file is expected to be either a dictionary or
+an array of dictionaries. 
 ''', file=sys.stderr)
     sys.exit(1)
 
@@ -84,18 +89,20 @@ def main():
             if command: command += '\n'
             command += f'print({sys.argv[i+1]})'
             skip = True
-        if arg.lower() in ['--start', '--begin', '--first', '--before']:
+        if arg.lower() in ['--start', '--begin', '--first', 
+            '--before', '--introduction', '--prelude', '--foreword']:
             if start_command: start_command += '\n'
             start_command += sys.argv[i+1]
             skip = True
-        if arg.lower() in ['--finish', '--end', '--last', '--after']:
+        if arg.lower() in ['--finish', '--end', '--last', 
+            '--after', '--conclusion', '--epilogue', '--afterword']:
             if end_command: end_command += '\n'
             end_command += sys.argv[i+1]
             skip = True
         if arg.lower()=='--field' or arg=='-F':
             separator = sys.argv[i+1]
             skip = True
-        if arg.lower()=='--file':
+        if arg.lower() in ['--file', '--input']:
             filename = sys.argv[i+1]
             file = f'open("{sys.argv[i+1]}", "r")'
             skip = True
@@ -123,6 +130,7 @@ def main():
     if filename.lower().endswith('.parquet'): mode='parquet'
     if filename.lower().endswith('.json'): mode='json'
     if filename.lower().endswith('.toml'): mode='toml'
+    if filename.lower().endswith('.yaml'): mode='yaml'
     if mode=='csv':
         if filename:
             file=f'open("{filename}", "r", newline="")'
@@ -143,6 +151,10 @@ def main():
         fileoverride='''file=json.load(file);
 if isinstance(file, dict):
     file=[file]'''
+    elif mode=='yaml':
+        start_command = 'from ruamel.yaml import YAML\n' + start_command;
+        start_command += '\nyaml=YAML(typ="safe");'
+        fileoverride='file=yaml.load(file)'
     else:
         fileoverride=''
         mode='text'
@@ -171,8 +183,9 @@ mode='{mode}'
         words=[str(col[line]) for col in table.columns]
         word=dict(zip(header,words))
         line=','.join(words)
-    elif mode=='json' or mode=='toml':
-        words=list(line.keys())
+    elif mode=='json' or mode=='toml' or mode=='yaml':
+        words=list(line.values())
+        header=list(line.keys())
         word=line
     else:
         words = line

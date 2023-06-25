@@ -1,0 +1,40 @@
+- planet: Mercury
+  distance from sun: 57.91 million km
+  number of satellites: 0
+  first visit: 1974-03-29
+
+- planet: Venus
+  distance from sun: 108.2 million km
+  number of satellites: 0
+  first visit: 1962-12-14
+
+- planet: Earth
+  distance from sun: 149.6 million km
+  number of satellites: 1
+  first visit: N/A
+
+- planet: Mars
+  distance from sun: 227.9 million km
+  number of satellites: 2
+  first visit: 1965-07-14
+
+- planet: Jupiter
+  distance from sun: 778.5 million km
+  number of satellites: 79
+  first visit: 1973-12-03
+
+- planet: Saturn
+  distance from sun: 1.43 billion km
+  number of satellites: 82
+  first visit: 1979-09-01
+
+- planet: Uranus
+  distance from sun: 2.88 billion km
+  number of satellites: 27
+  first visit: 1986-01-24
+
+- planet: Neptune
+  distance from sun: 4.5 billion km
+  number of satellites: 14
+  first visit: 1989-08-25
+

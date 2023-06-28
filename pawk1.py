@@ -27,15 +27,22 @@ Options:
                  also answers to --last, --finish, or --after.
 --file <fname> : read from fname instead of stdin.
                  File names ending in ".csv" will trigger CSV parsing,
-                 similarly for ".tsv" and ".parquet".
+                 similarly for ".tsv", ".json", ".toml", ".yaml" and
+                 ".parquet".
 -F<separator>  : use the given single-letter separator instead of space
                  to split the line into words. For example: -F;
                  also answers to --field <separator>, which allows for
                  longer separators.
 --header       : indicates the file has a header. The first line will be read
-                 outside of the loop and its words put in the "header" variable.
-                 Also answers to -H.
+                 outside of the loop and its words put in the "header"
+                 variable. Also answers to -H.
 --help         : print this message.
+--mode <mode>  : tells pawk how to interpret the input. This is chosen
+                 automatically from the extension when you give a file,
+                 but with standard input you need to tell it what it is
+                 or it'll be treated as just text. You can also use this
+                 to override pawk's choice when given a file, for example
+                 to force it to read a yaml file without trying to parse it.
 --print <code> : run "print(code)" on each line.
 
 Before calling your code, variable "line" is set to the contents of the
@@ -67,6 +74,7 @@ def main():
     filename = ''
     dryrun = False
     has_header = False
+    mode_override = None
     if len(sys.argv)<=1:
         help()
         return
@@ -111,6 +119,15 @@ def main():
         if arg.lower() in ['--header'] or arg=='-H':
             has_header = True
             continue
+        if arg.lower() == '--mode':
+            valid_modes = ['text', 'json', 'csv', 'tsv', 'toml', 'yaml']
+            mode_override_candidate = sys.argv[i+1]
+            if mode_override_candidate in valid_modes:
+                mode_override = mode_override_candidate
+                skip = True
+                continue
+            print(f'Mode \'{mode_override_candidate}\' is not valid. Valid modes are: {valid_modes}.', file=sys.stderr)
+            sys.exit(1)
         if not arg.startswith('--'):
             if command: command += '\n'
             command += arg
@@ -131,6 +148,7 @@ def main():
     if filename.lower().endswith('.json'): mode='json'
     if filename.lower().endswith('.toml'): mode='toml'
     if filename.lower().endswith('.yaml'): mode='yaml'
+    if mode_override: mode = mode_override
     if mode=='csv':
         if filename:
             file=f'open("{filename}", "r", newline="")'
@@ -161,8 +179,22 @@ if isinstance(file, dict):
     _fileoverride=textwrap.indent(fileoverride,'  ')
     program = f'''
 import csv, datetime, json, re, sys
+import code
 import collections
 from collections import defaultdict
+
+def multiget(a_dict, list_of_keys):
+    """Read a key from a dict, read a key from the result, and so on. Coalesces None."""
+    for key in list_of_keys:
+        if a_dict is None:
+            return None
+        a_dict = a_dict.get(key, None)
+    return a_dict
+
+def debug():
+    """Open an interactive Python prompt. Program resumes after it exits."""
+    code.interact()
+
 a=b=c=d=e=f=g=h=i=j=k=l=m=n=o=p=q=r=s=t=u=v=w=x=y=z=0
 total=count=0
 NR=0

@@ -22,7 +22,7 @@ You can also specify code to run before or after the loop.
 Since your code is put directly into the program, you can use `continue` or
 `break` to go to the next line or stop processing.
 
-The program will also parse `csv`, `tsv`, `json`, `toml` or `parquet` files if given
+The program will also parse `csv`, `tsv`, `json`, `toml`, `yaml` or `parquet` files if given
 as input so you don't have to worry about things like commas in quoted strings
 in your csv. It will import `datetime`, `defaultdict`, `re`, and `json` for you so
 you don't have to.
@@ -89,6 +89,11 @@ pawk --file tests/data/onejson.json --print 'word["two"]'
 # Process an array of JSON objects
 pawk --file tests/data/jsonarray.json --each 'a += word["age"]' \
      --end 'print(f"sum of ages: {a}")'
+```
+
+```
+# Read a key in a yaml file (from stdin)
+cat tests/data/planets.yaml | pawk --mode yaml --print 'word["planet"]'
 ```
 
 ## Installation

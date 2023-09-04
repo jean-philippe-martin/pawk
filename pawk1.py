@@ -51,27 +51,30 @@ Single-letter variables (a-z) are already initialized to 0 for you,
 as well as "total" and "count" (all set to 0). If the input is a file
 that pawk understands (see table below) then "word" is a dictionary.
 
-Pawk understands the following files: csv, tsv, json, parquet, toml.
+Pawk understands the following files: csv, tsv, json, parquet, toml, yaml.
 It will parse them and fill "words" and "word" appropriately, as detailed
 in the table below.
 
 input            words                                word
 ---------------+-----------------------------------+-------------------------
 standard input | array of the words in the line,   |  None
-               | split at the separator character  | 
-               | (-F, defaults to space).          |
+(no --mode     | split at the separator character  | 
+specified)     | (-F, defaults to space).          |
 ---------------+-----------------------------------+-------------------------
 .parquet file  | arrays of the fields in the row.  | dictionary of the fields,
 OR             |                                   | key = field name
 .csv or .tsv   |                                   | (csv and tsv require -H
 file.          |                                   | for word to be filled in)
 ---------------+-----------------------------------+-------------------------
-.json file     | array of the values in the dict   | one dictionary from the
-OR .toml file, |                                   | input array 
+.json, .yaml   | array of the values in the dict.  | one dictionary from the
+OR .toml file, |                                   | input.  
 root element   |                                   |
 is a dict or   |                                   |
-array of dict  |                                   |
+array of dict. |                                   |
 ---------------+-----------------------------------+-------------------------
+
+You can also use the "--mode" option to tell pawk that what's in stdin is
+actually in csv, tsv, json, toml, or yaml format.
 
 ''', file=sys.stderr)
     sys.exit(1)

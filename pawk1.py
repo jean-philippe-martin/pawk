@@ -48,20 +48,31 @@ Options:
 Before calling your code, variable "line" is set to the contents of the
 current line, and "words" is that line split using the given separator.
 Single-letter variables (a-z) are already initialized to 0 for you,
-as well as "total" and "count" (all set to 0).
+as well as "total" and "count" (all set to 0). If the input is a file
+that pawk understands (see table below) then "word" is a dictionary.
 
-If the filename ends in '.csv', '.tsv' or '.parquet',
-then a corresponding reader is used, and "words" are the parsed line.
-Variable "line" is still  present but it's just ','.join(words) rather
-than the original line. In that mode the passed separator is ignored.
-If the file has a header then variable "header" holds them in a list
-and the "word" variable is set, it's a dictionary mapping from the column
-name to its value for the current line.
+Pawk understands the following files: csv, tsv, json, parquet, toml.
+It will parse them and fill "words" and "word" appropriately, as detailed
+in the table below.
 
-If the filename ends in '.json' or '.toml' then again the corresponding
-reader is used, except that now each "line" is a dictionary (and "word"
-is an alias for it). The JSON file is expected to be either a dictionary or
-an array of dictionaries. 
+input            words                                word
+---------------+-----------------------------------+-------------------------
+standard input | array of the words in the line,   |  None
+               | split at the separator character  | 
+               | (-F, defaults to space).          |
+---------------+-----------------------------------+-------------------------
+.parquet file  | arrays of the fields in the row.  | dictionary of the fields,
+OR             |                                   | key = field name
+.csv or .tsv   |                                   | (csv and tsv require -H
+file.          |                                   | for word to be filled in)
+---------------+-----------------------------------+-------------------------
+.json file     | array of the values in the dict   | one dictionary from the
+OR .toml file, |                                   | input array 
+root element   |                                   |
+is a dict or   |                                   |
+array of dict  |                                   |
+---------------+-----------------------------------+-------------------------
+
 ''', file=sys.stderr)
     sys.exit(1)
 

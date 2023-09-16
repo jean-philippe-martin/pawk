@@ -89,6 +89,7 @@ def main():
     dryrun = False
     has_header = False
     mode_override = None
+    no_more_arguments = False
     if len(sys.argv)<=1:
         help()
         return
@@ -97,43 +98,47 @@ def main():
             skip = False
             continue
         arg = sys.argv[i]
-        if arg.startswith('-F') and len(arg)==3:
+        if no_more_arguments:
+            if command: command += '\n'
+            command += arg
+            continue
+        elif arg.startswith('-F') and len(arg)==3:
             separator = arg[2]
             continue
-        if arg.lower()=='--help':
+        elif arg.lower()=='--help':
             usage()
             return
-        if arg.lower()=='--each':
+        elif arg.lower()=='--each':
             if command: command += '\n'
             command += sys.argv[i+1]
             skip = True
-        if arg.lower()=='--print':
+        elif arg.lower()=='--print':
             if command: command += '\n'
             command += f'print({sys.argv[i+1]})'
             skip = True
-        if arg.lower() in ['--start', '--begin', '--first', 
+        elif arg.lower() in ['--start', '--begin', '--first', 
             '--before', '--introduction', '--prelude', '--foreword']:
             if start_command: start_command += '\n'
             start_command += sys.argv[i+1]
             skip = True
-        if arg.lower() in ['--finish', '--end', '--last', 
+        elif arg.lower() in ['--finish', '--end', '--last', 
             '--after', '--conclusion', '--epilogue', '--afterword']:
             if end_command: end_command += '\n'
             end_command += sys.argv[i+1]
             skip = True
-        if arg.lower()=='--field' or arg=='-F':
+        elif arg.lower()=='--field' or arg=='-F':
             separator = sys.argv[i+1]
             skip = True
-        if arg.lower() in ['--file', '--input']:
+        elif arg.lower() in ['--file', '--input']:
             filename = sys.argv[i+1]
             file = f'open("{sys.argv[i+1]}", "r")'
             skip = True
-        if arg.lower() in ['--dry-run', '--dryrun', '--dry_run']:
+        elif arg.lower() in ['--dry-run', '--dryrun', '--dry_run']:
             dryrun = True
-        if arg.lower() in ['--header'] or arg=='-H':
+        elif arg.lower() in ['--header'] or arg=='-H':
             has_header = True
             continue
-        if arg.lower() == '--mode':
+        elif arg.lower() == '--mode':
             valid_modes = ['text', 'json', 'csv', 'tsv', 'toml', 'yaml']
             mode_override_candidate = sys.argv[i+1]
             if mode_override_candidate in valid_modes:
@@ -142,7 +147,13 @@ def main():
                 continue
             print(f'Mode \'{mode_override_candidate}\' is not valid. Valid modes are: {valid_modes}.', file=sys.stderr)
             sys.exit(1)
-        if not arg.startswith('--'):
+        elif arg == '--':
+            no_more_arguments = True
+            continue
+        elif arg.startswith('-'):
+            print(f'Unknown argument: "{arg}". Use --help for help.', file=sys.stderr)
+            sys.exit(1)
+        elif not arg.startswith('--'):
             if command: command += '\n'
             command += arg
     if not command and not start_command and not end_command:
